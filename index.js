@@ -24,7 +24,7 @@ const sessOptions = {
   secret: config.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
-  domain: ".albertcui.com"  //Add . to beginning to allow other hosts
+  domain: ".opendota.com"  //Add . to beginning to allow other hosts
 };
 // PASSPORT config
 passport.serializeUser((user, done) => {
@@ -96,21 +96,21 @@ const port = config.PORT;
 const server = app.listen(port, () => {
   console.log('[WEB] listening on %s', port);
 });
-// // listen for TERM signal .e.g. kill
-// process.once('SIGTERM', gracefulShutdown);
-// // listen for INT signal e.g. Ctrl-C
-// process.once('SIGINT', gracefulShutdown);
-// // this function is called when you want the server to die gracefully
-// // i.e. wait for existing connections
-// function gracefulShutdown() {
-//   console.log('Received kill signal, shutting down gracefully.');
-//   server.close(() => {
-//     console.log('Closed out remaining connections.');
-//     process.exit();
-//   });
-//   // if after
-//   setTimeout(() => {
-//     console.error('Could not close connections in time, forcefully shutting down');
-//     process.exit();
-//   }, 10 * 1000);
-// }
+// listen for TERM signal .e.g. kill
+process.once('SIGTERM', gracefulShutdown);
+// listen for INT signal e.g. Ctrl-C
+process.once('SIGINT', gracefulShutdown);
+// this function is called when you want the server to die gracefully
+// i.e. wait for existing connections
+function gracefulShutdown() {
+  console.log('Received kill signal, shutting down gracefully.');
+  server.close(() => {
+    console.log('Closed out remaining connections.');
+    process.exit();
+  });
+  // if after
+  setTimeout(() => {
+    console.error('Could not close connections in time, forcefully shutting down');
+    process.exit();
+  }, 10 * 1000);
+}
