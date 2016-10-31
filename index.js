@@ -20,11 +20,11 @@ const host = config.ROOT_URL;
 const querystring = require('querystring');
 const util = require('util');
 const sessOptions = {
+  domain: config.COOKIE_DOMAIN,
   maxAge: 52 * 7 * 24 * 60 * 60 * 1000,
   secret: config.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
-  domain: ".opendota.com"  //Add . to beginning to allow other hosts
 };
 // PASSPORT config
 passport.serializeUser((user, done) => {
@@ -52,6 +52,15 @@ app.use(session(sessOptions));
 app.use(passport.initialize());
 app.use(passport.session());
 app.use(compression());
+
+// Remove any old cookies from default domain if not using it (using custom domain)
+app.use((req, res, cb) => {
+  if (config.COOKIE_DOMAIN) {
+    res.clearCookie('session');
+    res.clearCookie('session.sig');
+  }
+  cb();
+});
 
 app.use((req, res, cb) => {
   async.parallel({

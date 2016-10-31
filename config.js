@@ -23,13 +23,9 @@ const defaults = {
   POSTGRES_TEST_URL: 'postgresql://postgres:postgres@localhost/yasp_test',
   REDIS_URL: 'redis://127.0.0.1:6379/0', // connection string for Redis
   REDIS_TEST_URL: 'redis://127.0.0.1:6379/1',
-  CASSANDRA_URL: 'cassandra://localhost/yasp', // connection string for Cassandra
-  CASSANDRA_TEST_URL: 'cassandra://localhost/yasp_test',
   SESSION_SECRET: 'secret to encrypt cookies with', // string to encrypt cookies
+  COOKIE_DOMAIN: '',
   GOAL: 5, // The cheese goal
-  ENABLE_POSTGRES_MATCH_STORE_WRITE: '1', // set to enable writing match data to postgres, if off, only pro matches are written
-  ENABLE_CASSANDRA_MATCH_STORE_READ: '1', // set to enable reading match data from cassandra
-  ENABLE_CASSANDRA_MATCH_STORE_WRITE: '1', // set to enable writing match data to cassandra
   STRIPE_SECRET: '', // for donations, in web
   STRIPE_PUBLIC: '',
   BRAIN_TREE_MERCHANT_ID: '',
