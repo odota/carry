@@ -15,7 +15,6 @@ const express = require('express');
 const app = express();
 const passport = require('passport');
 const compression = require('compression');
-const SteamStrategy = require('passport-steam').Strategy;
 const host = config.ROOT_URL;
 const querystring = require('querystring');
 const util = require('util');
@@ -43,6 +42,7 @@ app.locals.moment = moment;
 app.locals.qs = querystring;
 app.locals.util = util;
 app.locals.config = config;
+app.locals.host = host;
 app.locals.basedir = `${__dirname}/views`;
 
 // TODO remove this with SPA (no more public assets)
@@ -96,21 +96,3 @@ const port = config.PORT;
 const server = app.listen(port, () => {
   console.log('[WEB] listening on %s', port);
 });
-// listen for TERM signal .e.g. kill
-process.once('SIGTERM', gracefulShutdown);
-// listen for INT signal e.g. Ctrl-C
-process.once('SIGINT', gracefulShutdown);
-// this function is called when you want the server to die gracefully
-// i.e. wait for existing connections
-function gracefulShutdown() {
-  console.log('Received kill signal, shutting down gracefully.');
-  server.close(() => {
-    console.log('Closed out remaining connections.');
-    process.exit();
-  });
-  // if after
-  setTimeout(() => {
-    console.error('Could not close connections in time, forcefully shutting down');
-    process.exit();
-  }, 10 * 1000);
-}
