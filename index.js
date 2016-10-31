@@ -14,6 +14,7 @@ const async = require('async');
 const express = require('express');
 const app = express();
 const passport = require('passport');
+const compression = require('compression');
 const SteamStrategy = require('passport-steam').Strategy;
 const host = config.ROOT_URL;
 const querystring = require('querystring');
@@ -50,6 +51,7 @@ app.use('/public', express.static(path.join(__dirname, '/public')));
 app.use(session(sessOptions));
 app.use(passport.initialize());
 app.use(passport.session());
+app.use(compression());
 
 app.use((req, res, cb) => {
   async.parallel({
@@ -66,27 +68,6 @@ app.use((req, res, cb) => {
     return cb(err);
   });
 });
-
-app.route('/login').get(passport.authenticate('steam', {
-  failureRedirect: '/',
-}));
-app.route('/return').get(passport.authenticate('steam', {
-  failureRedirect: '/',
-}), (req, res, next) => {
-  if (config.UI_HOST) {
-    return res.redirect(`${config.UI_HOST}/players/${req.user.account_id}`);
-  }
-  return res.redirect(`/players/${req.user.account_id}`);
-});
-app.route('/logout').get((req, res) => {
-  req.logout();
-  req.session = null;
-  if (config.UI_HOST) {
-    return res.redirect(config.UI_HOST);
-  }
-  return res.redirect('/');
-});
-
 
 app.use('/', donate(db, redis));
 app.use((req, res, next) => {

@@ -13,7 +13,7 @@ $('#subscription').change(function() {
 
 var handler = StripeCheckout.configure({
     key: stripe_public,
-    image: '/public/images/android-chrome-192x192.png',
+    image: '/public/images/logo.png',
     locale: 'auto',
     token: function(token) {
         var data = {
