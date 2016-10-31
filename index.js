@@ -1,7 +1,7 @@
-/**
- * Worker serving as main web application
- * Serves web/API requests
- **/
+const cp = require('child_process');
+if (process.env.PROVIDER === 'gce') {
+  cp.execSync('curl -H "Metadata-Flavor: Google" -L http://metadata.google.internal/computeMetadata/v1/project/attributes/env > /usr/src/.env');
+}
 const config = require('./config');
 console.log(config.PORT)
 const redis = require('./store/redis');
