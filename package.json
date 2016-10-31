@@ -1,0 +1,46 @@
+{
+  "name": "carry",
+  "version": "1.0.0",
+  "description": "Donations processor for OpenDota",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "license": "ISC",
+  "dependencies": {
+    "async": "2.1.2",
+    "big-number": "0.4.0",
+    "body-parser": "1.15.2",
+    "braintree": "1.41.0",
+    "cassandra-driver": "3.1.5",
+    "chance": "1.0.4",
+    "compression": "1.6.2",
+    "connect-multiparty": "2.0.0",
+    "connect-redis": "3.1.0",
+    "cookie-session": "2.0.0-alpha.1",
+    "dotenv": "2.0.0",
+    "express": "4.14.0",
+    "express-session": "1.14.0",
+    "flag-icon-css": "2.3.0",
+    "font-awesome": "4.6.3",
+    "jade": "1.11.0",
+    "jquery": "3.1.1",
+    "knex": "0.12.5",
+    "moment": "2.15.1",
+    "numeral": "1.5.3",
+    "passport": "0.3.2",
+    "passport-steam": "1.0.6",
+    "pg": "6.0.3",
+    "pg-query-stream": "1.0.0",
+    "pm2": "2.0.18",
+    "qtip2": "3.0.3",
+    "redis": "2.6.2",
+    "request": "2.75.0",
+    "steam": "1.4.0",
+    "steam-user": "3.13.0",
+    "stripe": "4.11.0"
+  },
+  "engines": {
+    "node": "6.9.0"
+  }
+}
