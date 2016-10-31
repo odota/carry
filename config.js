@@ -41,11 +41,7 @@ for (const key in defaults)
 {
   process.env[key] = (key in process.env) ? process.env[key] : defaults[key];
 }
-if (process.env.NODE_ENV === 'development')
-{
-    // force PORT to null in development so we can run multiple web services without conflict
-  process.env.PORT = '';
-}
+
 if (process.env.NODE_ENV === 'test')
 {
   process.env.PORT = ''; // use service defaults

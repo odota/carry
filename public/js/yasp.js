@@ -1,0 +1,11 @@
+require('../../node_modules/font-awesome/css/font-awesome.css');
+require('../../node_modules/bootstrap/dist/css/bootstrap.css');
+require('../../node_modules/bootswatch/darkly/bootstrap.css');
+require('../../node_modules/flag-icon-css/css/flag-icon.css');
+require('../css/flaticon.css');
+require('../css/index.css');
+require('./ga.js');
+var $ = require('jquery');
+window.jQuery = $;
+window.$ = $;
+require('bootstrap');

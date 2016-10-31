@@ -22,7 +22,7 @@ module.exports = function (db, redis) {
     {
       extended: true,
     }));
-  donate.route('/carry').get((req, res, next) => {
+  donate.route('/').get((req, res, next) => {
     db.from('players').where('cheese', '>', 0).limit(50).orderBy('cheese', 'desc')
         .asCallback((err, results) => {
           if (err) {

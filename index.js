@@ -2,18 +2,11 @@
  * Worker serving as main web application
  * Serves web/API requests
  **/
-const config = require('./config.js');
-console.log(config.NODE_ENV)
-console.log(config.GOAL);
-console.log(config.REDIS_URL);
+const config = require('./config');
+console.log(config.PORT)
 const redis = require('./store/redis');
 const db = require('./store/db');
-const cassandra = config.ENABLE_CASSANDRA_MATCH_STORE_READ ? require('../store/cassandra') : undefined;
-const queries = require('./store/queries');
-const search = require('./store/search');
 const donate = require('./routes/donate');
-const request = require('request');
-const compression = require('compression');
 const session = require('cookie-session');
 const path = require('path');
 const moment = require('moment');
@@ -21,7 +14,6 @@ const async = require('async');
 const express = require('express');
 const app = express();
 const passport = require('passport');
-const api_key = config.STEAM_API_KEY.split(',')[0];
 const SteamStrategy = require('passport-steam').Strategy;
 const host = config.ROOT_URL;
 const querystring = require('querystring');
@@ -42,35 +34,18 @@ passport.deserializeUser((account_id, done) => {
     account_id,
   });
 });
-passport.use(new SteamStrategy({
-  returnURL: `${host}/return`,
-  realm: host,
-  apiKey: api_key,
-}, (identifier, profile, cb) => {
-  const player = profile._json;
-  player.last_login = new Date();
-  queries.insertPlayer(db, player, (err) => {
-    if (err) {
-      return cb(err);
-    }
-    return cb(err, player);
-  });
-}));
+
 // TODO Remove this with SPA (Views/Locals config)
-app.set('views', path.join(__dirname, '../views'));
+app.set('views', path.join(__dirname, '/views'));
 app.set('view engine', 'jade');
 app.locals.moment = moment;
-app.locals.constants = constants;
-app.locals.tooltips = require('../lang/en.json');
 app.locals.qs = querystring;
 app.locals.util = util;
 app.locals.config = config;
-app.locals.basedir = `${__dirname}/../views`;
-app.locals.prettyPrint = utility.prettyPrint;
-app.locals.percentToTextClass = utility.percentToTextClass;
-app.locals.getAggs = utility.getAggs;
+app.locals.basedir = `${__dirname}/views`;
+
 // TODO remove this with SPA (no more public assets)
-app.use('/public', express.static(path.join(__dirname, '/../public')));
+app.use('/public', express.static(path.join(__dirname, '/public')));
 // Session/Passport middleware
 app.use(session(sessOptions));
 app.use(passport.initialize());
@@ -136,25 +111,25 @@ app.use((err, req, res, next) => {
     });
   }
 });
-const port = config.PORT || config.FRONTEND_PORT;
+const port = config.PORT;
 const server = app.listen(port, () => {
   console.log('[WEB] listening on %s', port);
 });
-// listen for TERM signal .e.g. kill
-process.once('SIGTERM', gracefulShutdown);
-// listen for INT signal e.g. Ctrl-C
-process.once('SIGINT', gracefulShutdown);
-// this function is called when you want the server to die gracefully
-// i.e. wait for existing connections
-function gracefulShutdown() {
-  console.log('Received kill signal, shutting down gracefully.');
-  server.close(() => {
-    console.log('Closed out remaining connections.');
-    process.exit();
-  });
-  // if after
-  setTimeout(() => {
-    console.error('Could not close connections in time, forcefully shutting down');
-    process.exit();
-  }, 10 * 1000);
-}
+// // listen for TERM signal .e.g. kill
+// process.once('SIGTERM', gracefulShutdown);
+// // listen for INT signal e.g. Ctrl-C
+// process.once('SIGINT', gracefulShutdown);
+// // this function is called when you want the server to die gracefully
+// // i.e. wait for existing connections
+// function gracefulShutdown() {
+//   console.log('Received kill signal, shutting down gracefully.');
+//   server.close(() => {
+//     console.log('Closed out remaining connections.');
+//     process.exit();
+//   });
+//   // if after
+//   setTimeout(() => {
+//     console.error('Could not close connections in time, forcefully shutting down');
+//     process.exit();
+//   }, 10 * 1000);
+// }

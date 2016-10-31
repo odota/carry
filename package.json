@@ -11,6 +11,8 @@
     "async": "2.1.2",
     "big-number": "0.4.0",
     "body-parser": "1.15.2",
+    "bootstrap": "3.3.7",
+    "bootswatch": "3.3.7",
     "braintree": "1.41.0",
     "cassandra-driver": "3.1.5",
     "chance": "1.0.4",
@@ -18,9 +20,11 @@
     "connect-multiparty": "2.0.0",
     "connect-redis": "3.1.0",
     "cookie-session": "2.0.0-alpha.1",
+    "css-loader": "0.25.0",
     "dotenv": "2.0.0",
     "express": "4.14.0",
     "express-session": "1.14.0",
+    "file-loader": "0.9.0",
     "flag-icon-css": "2.3.0",
     "font-awesome": "4.6.3",
     "jade": "1.11.0",
@@ -38,7 +42,9 @@
     "request": "2.75.0",
     "steam": "1.4.0",
     "steam-user": "3.13.0",
-    "stripe": "4.11.0"
+    "stripe": "4.11.0",
+    "style-loader": "0.13.1",
+    "url-loader": "0.5.7"
   },
   "engines": {
     "node": "6.9.0"
