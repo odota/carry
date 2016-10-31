@@ -53,15 +53,6 @@ app.use(passport.initialize());
 app.use(passport.session());
 app.use(compression());
 
-// Remove any old cookies from default domain if not using it (using custom domain)
-app.use((req, res, cb) => {
-  if (config.COOKIE_DOMAIN) {
-    res.clearCookie('session');
-    res.clearCookie('session.sig');
-  }
-  cb();
-});
-
 app.use((req, res, cb) => {
   async.parallel({
     banner(cb) {
