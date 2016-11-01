@@ -92,7 +92,7 @@ app.use((err, req, res, next) => {
     });
   }
 });
-const port = config.PORT;
+const port = config.CARRY_PORT;
 const server = app.listen(port, () => {
   console.log('[WEB] listening on %s', port);
 });
