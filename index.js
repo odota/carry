@@ -1,4 +1,5 @@
 const cp = require('child_process');
+const path = require('path');
 if (process.env.PROVIDER === 'gce') {
   cp.execSync(
     'curl -H "Metadata-Flavor: Google" -L http://metadata.google.internal/computeMetadata/v1/project/attributes/env > '
@@ -10,7 +11,6 @@ const redis = require('./store/redis');
 const db = require('./store/db');
 const donate = require('./routes/donate');
 const session = require('cookie-session');
-const path = require('path');
 const moment = require('moment');
 const async = require('async');
 const express = require('express');
