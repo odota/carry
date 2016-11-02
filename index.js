@@ -23,9 +23,7 @@ const util = require('util');
 const sessOptions = {
   domain: config.COOKIE_DOMAIN,
   maxAge: 52 * 7 * 24 * 60 * 60 * 1000,
-  secret: config.SESSION_SECRET,
-  resave: false,
-  saveUninitialized: false,
+  secret: config.SESSION_SECRET
 };
 // PASSPORT config
 passport.serializeUser((user, done) => {
