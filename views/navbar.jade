@@ -1,7 +1,7 @@
 .container
   .navbar(style="margin-bottom:0px")
     .navbar-header
-      a.navbar-brand(href='//#{host}')
+      a.navbar-brand(href='#{host}')
         strong.theme-blue OpenDota
         a.navbar-toggle(data-toggle='collapse', data-target='.navbar-collapse')
           span.icon-bar
@@ -10,7 +10,7 @@
     #navbar.navbar-collapse.collapse
       ul.nav.navbar-nav.navbar-right
         if user
-          li: a(href="//#{host}/players/"+user.account_id) Profile
-          li: a(href="//#{host}/logout") Logout
+          li: a(href="#{host}/players/"+user.account_id) Profile
+          li: a(href="#{host}/logout") Logout
         else
-          li: a(href="//#{host}/login") Login
+          li: a(href="#{host}/login") Login
