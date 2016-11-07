@@ -43,6 +43,7 @@ app.locals.qs = querystring;
 app.locals.util = util;
 app.locals.config = config;
 app.locals.host = host;
+app.locals.login_host = config.ROOT_URL;
 app.locals.basedir = `${__dirname}/views`;
 
 // TODO remove this with SPA (no more public assets)

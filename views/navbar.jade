@@ -11,6 +11,6 @@
       ul.nav.navbar-nav.navbar-right
         if user
           li: a(href="#{host}/players/"+user.account_id) Profile
-          li: a(href="#{host}/logout") Logout
+          li: a(href="#{login_host}/logout") Logout
         else
-          li: a(href="#{host}/login") Login
+          li: a(href="#{login_host}/login") Login
