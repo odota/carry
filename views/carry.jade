@@ -127,7 +127,7 @@ block page_content
                   a(href=player.profileurl || "#", target="_blank", style="display:inline-block; margin-right:10px;")
                     if player.avatar
                       img(src='#{player.avatar}', style="margin-right: 10px").img-thumbnail
-                  h4(style="display:inline"): a(href="/players/#{player.account_id}") #{player.personaname || player.account_id}
+                  h4(style="display:inline"): a(href="#{host}/players/#{player.account_id}") #{player.personaname || player.account_id}
                 td #{player.cheese}
 append footer_assets
    style.
