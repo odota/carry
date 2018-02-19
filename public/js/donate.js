@@ -15,11 +15,14 @@ var handler = StripeCheckout.configure({
     key: stripe_public,
     image: '/public/images/logo.png',
     locale: 'auto',
-    token: function(token) {
+    zipCode: true,
+    billingAddress: true,
+    token: function(token, args) {
         var data = {
             amount: $amount.find(":selected").text(),
             subscription: document.getElementById("subscription").checked,
-            token: token
+            token: token,
+            address: args
         };
 
         $.post("/stripe_checkout", data, function(data) {
