@@ -44,7 +44,8 @@
     "steam-user": "3.13.0",
     "stripe": "4.11.0",
     "style-loader": "0.13.1",
-    "url-loader": "0.5.7"
+    "url-loader": "0.5.7",
+    "webpack": "^1.13.3"
   },
   "engines": {
     "node": "6.9.0"
