@@ -110,3 +110,16 @@
 .carry-table tbody tr {
   border-bottom: 1px solid #222;
 }
+
+
+.modal {
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, .4);
+}
+
+.modal .jumbotron {
+  width: 50%;
+  height: 50%;
+  margin: 20% auto;
+}

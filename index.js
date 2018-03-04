@@ -10,6 +10,7 @@ const config = require('./config');
 const redis = require('./store/redis');
 const db = require('./store/db');
 const donate = require('./routes/donate');
+const api = require('./routes/api');
 const session = require('cookie-session');
 const moment = require('moment');
 const async = require('async');
@@ -71,6 +72,7 @@ app.use((req, res, cb) => {
 });
 
 app.use('/', donate(db, redis));
+app.use('/api', api(db, redis));
 app.use((req, res, next) => {
   const err = new Error('Not Found');
   err.status = 404;
@@ -95,5 +97,5 @@ app.use((err, req, res, next) => {
 });
 const port = config.CARRY_PORT;
 const server = app.listen(port, () => {
-  console.log('[WEB] listening on %s', port);
+  console.log('[CARRY] listening on %s', port);
 });

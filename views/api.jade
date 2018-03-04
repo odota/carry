@@ -1,0 +1,91 @@
+extend base_layout
+  
+block head
+  link(rel='stylesheet', href="/public/css/carry.css")
+
+block page_content
+  .container
+      header.text-center
+        h1 The OpenDota API
+        a(href="//odota.github.io/docs")
+          button#thething.btn.btn-warning View API Docs
+      hr
+      .row
+        if subscription && subscription.length > 0
+          .row
+            .col-md-8.col-md-offset-2
+              if subscription.length > 1
+                table.table
+                  tbody
+                    tr 
+                      th Amount
+                      each s in subscription
+                        td= s.amount
+                    tr
+                      th Renewal
+                      each s in subscription
+                        td= moment(subscription.active_until).format("MMM Do YYYY")
+              else
+                - var sub = subscription[0];
+                p You're currently subscribed for #{sub.amount} cheese/month ($#{sub.amount}/month).
+                  | This is set to renew on #{moment(sub.active_until).format("dddd, MMMM Do YYYY")}.
+              p Thanks so much for your support!
+              p To cancel your subscription, click #[a(href="/cancel") here]. 
+          hr
+        #alert.alert.alert-danger(role="alert", style="display:none;")
+        .col-md-12
+          .text-center
+            h4 Want to build your own service on top of our API?
+            p It's cheap to get started.
+          table.table
+            tr
+              th First 50000 Calls/month
+              th Any Calls >50000/month
+            tr
+              td FREE
+              td TBD API calls
+          h4 Details
+          ol
+            li Calls over 50000/month will require an API key.
+            li Keyless API calls are limited to 1 call per minute. Calls with API keys are limited to 3 calls per minute.
+            li Getting an API key requires a linked-credit card. We'll automatically charge the card at the beginning of the month for any fees owed.
+            li Payment is processed with Stripe. We never store your credit card information.
+          .text-center
+            if user
+              if user.api_key
+                pre= user.api_key
+              else
+                button.btn.btn-warning(onClick="showModal()") Get my API key
+            else  
+              p
+                i.fa.fa-info-circle.carry-info-icon
+                | Log in to get your API key.
+       hr
+      .row.carry-col.carry-feature
+        .col-md-4
+          h3 Be at the top
+          span.fa.fa-line-chart.fa-5x
+          p.text(style="margin-top:1em;") Get listed as a <a href="#top">top contributor</a>. People will be all, "Wow!"
+        .col-md-4
+          h3 Cheese your profile
+          span.flaticon-1.medium-cheese(style="font-size: 5em; line-height: .96;")
+          p.text(style="margin-top:1em;") Cause cheese is awesome.
+        .col-md-4
+          h3 Feel good about yourself
+          span.fa.fa-heart-o.fa-5x
+          p.text(style="margin-top:1em;") You're awesome.
+      .modal(style="display:none;")
+        .jumbotron
+          ol
+            li Getting an API key requires a linked-credit card.
+            li You're authorizing us to automatically charge the card at the beginning of the month for any fees owed.
+            li Payment is processed with Stripe. We never store your credit card information.
+          .text-center
+            button.btn.btn-warning(style="text-transform: initial;", onClick="openStripe()") Link my card
+append footer_assets
+   style.
+     .img-thumbnail { width: 40px;}
+   script(src="https://checkout.stripe.com/checkout.js")
+   script.
+    var stripe_public = "#{stripe_public}";
+   script(src="/public/js/api.js")

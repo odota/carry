@@ -45,6 +45,7 @@
     "stripe": "4.11.0",
     "style-loader": "0.13.1",
     "url-loader": "0.5.7",
+    "uuid": "^3.2.1",
     "webpack": "^1.13.3"
   },
   "engines": {
