@@ -11,49 +11,33 @@ block page_content
           button#thething.btn.btn-warning View API Docs
       hr
       .row
-        if subscription && subscription.length > 0
-          .row
-            .col-md-8.col-md-offset-2
-              if subscription.length > 1
-                table.table
-                  tbody
-                    tr 
-                      th Amount
-                      each s in subscription
-                        td= s.amount
-                    tr
-                      th Renewal
-                      each s in subscription
-                        td= moment(subscription.active_until).format("MMM Do YYYY")
-              else
-                - var sub = subscription[0];
-                p You're currently subscribed for #{sub.amount} cheese/month ($#{sub.amount}/month).
-                  | This is set to renew on #{moment(sub.active_until).format("dddd, MMMM Do YYYY")}.
-              p Thanks so much for your support!
-              p To cancel your subscription, click #[a(href="/cancel") here]. 
-          hr
         #alert.alert.alert-danger(role="alert", style="display:none;")
         .col-md-12
           .text-center
             h4 Want to build your own service on top of our API?
-            p It's cheap to get started.
+            p It's cheap to get started & keeps OpenDota running.
           table.table
             tr
-              th First 50000 Calls/month
-              th Any Calls >50000/month
+              th First 25000 Calls/month
+              th Any Calls >25000/month
             tr
               td FREE
               td TBD API calls
           h4 Details
           ol
-            li Calls over 50000/month will require an API key.
-            li Keyless API calls are limited to 1 call per minute. Calls with API keys are limited to 3 calls per minute.
+            li Calls over 25000/month will require an API key.
+            li Keyless API calls are limited to 1 call per second. Calls with API keys are limited to 3 calls per second.
             li Getting an API key requires a linked-credit card. We'll automatically charge the card at the beginning of the month for any fees owed.
             li Payment is processed with Stripe. We never store your credit card information.
           .text-center
             if user
-              if user.api_key
-                pre= user.api_key
+              if key
+                h4 Your API key
+                pre=key
+                a(href="/api/delete")
+                  button.btn.btn-danger Delete Key (cannot be undone)
+                button.btn.btn-default(onClick="openUpdate()") Update Payment Method
+                p We have a #{credit_brand} ending in #{credit_last4} on file. We'll charge this every month for any fees owned.
               else
                 button.btn.btn-warning(onClick="showModal()") Get my API key
             else  

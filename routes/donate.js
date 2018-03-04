@@ -76,6 +76,9 @@ module.exports = function (db, redis) {
             customer_id: customer.id,
             amount,
             active_until: moment().add(1, 'M').format('YYYY-MM-DD'),
+            metadata: {
+              user: req.user ? req.user.account_id : "annon",
+            },
           }).asCallback((err) => {
             if (err) return res.send(checkErr());
 
@@ -99,6 +102,9 @@ module.exports = function (db, redis) {
         currency: 'usd',
         source: token.id,
         description: `Buying ${amount} cheese!`,
+        metadata: {
+          user: req.user ? req.user.account_id : "annon",
+        }
       }, (err, charge) => {
         if (err) {
           return res.send(checkErr(err));
@@ -157,32 +163,32 @@ module.exports = function (db, redis) {
               console.log('Event %s: Charge belongs to customer %s.', id, customer);
 
               db('subscriptions')
-                            .returning('account_id')
-                            .update({
-                              active_until: moment().add(1, 'M').format('YYYY-MM-DD'),
-                            })
-                            .where({
-                              customer_id: customer,
-                            })
-                            .asCallback((err, sub) => {
-                              if (err) return res.sendStatus(400); // Postgres derping
-                              if (sub && sub.length > 0) {
-                                console.log('Event %s: Found customer %s, account_id is %s', id, customer, sub[0]);
-                                db('players')
-                                    .increment('cheese', amount || 0)
-                                    .where({
-                                      account_id: sub[0],
-                                    })
-                                    .asCallback((err, result) => {
-                                      if (err) return res.sendStatus(400);
-                                      console.log('Event %s: Incremented cheese of %s', id, sub[0]);
-                                      addEventAndRespond(id, res);
-                                    });
-                              } else {
-                                console.log('Event %s: Did not find customer %s.', id, customer);
-                                addEventAndRespond(id, res);
-                              }
-                            });
+                .returning('account_id')
+                .update({
+                  active_until: moment().add(1, 'M').format('YYYY-MM-DD'),
+                })
+                .where({
+                  customer_id: customer,
+                })
+                .asCallback((err, sub) => {
+                  if (err) return res.sendStatus(400); // Postgres derping
+                  if (sub && sub.length > 0) {
+                    console.log('Event %s: Found customer %s, account_id is %s', id, customer, sub[0]);
+                    db('players')
+                        .increment('cheese', amount || 0)
+                        .where({
+                          account_id: sub[0],
+                        })
+                        .asCallback((err, result) => {
+                          if (err) return res.sendStatus(400);
+                          console.log('Event %s: Incremented cheese of %s', id, sub[0]);
+                          addEventAndRespond(id, res);
+                        });
+                  } else {
+                    console.log('Event %s: Did not find customer %s.', id, customer);
+                    addEventAndRespond(id, res);
+                  }
+                });
             } else {
               addEventAndRespond(id, res);
             }

@@ -79,7 +79,6 @@ app.use((req, res, next) => {
   return next(err);
 });
 app.use((err, req, res, next) => {
-  console.error(err);
   res.status(err.status || 500);
   redis.zadd('error_500', moment().format('X'), req.originalUrl);
   if (req.originalUrl.indexOf('/api') === 0) {
