@@ -78,22 +78,7 @@ app.use((req, res, next) => {
   err.status = 404;
   return next(err);
 });
-app.use((err, req, res, next) => {
-  res.status(err.status || 500);
-  redis.zadd('error_500', moment().format('X'), req.originalUrl);
-  if (req.originalUrl.indexOf('/api') === 0) {
-    return res.json({
-      error: err,
-    });
-  } else if (config.NODE_ENV === 'development') {
-    // default express handler
-    next(err);
-  } else {
-    return res.render(`error/${err.status === 404 ? '404' : '500'}`, {
-      error: err,
-    });
-  }
-});
+
 const port = config.CARRY_PORT;
 const server = app.listen(port, () => {
   console.log('[CARRY] listening on %s', port);
