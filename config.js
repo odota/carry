@@ -26,6 +26,9 @@ const defaults = {
   SESSION_SECRET: 'secret to encrypt cookies with', // string to encrypt cookies
   COOKIE_DOMAIN: '',
   GOAL: 5, // The cheese goal
+  API_PRICE: 1,
+  API_UNIT: 1,
+  API_FREE_LIMIT: 25000,
   STRIPE_SECRET: '', // for donations, in web
   STRIPE_PUBLIC: '',
   BRAIN_TREE_MERCHANT_ID: '',

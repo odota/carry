@@ -6,13 +6,16 @@ const async = require('async');
 const stripe_secret = config.STRIPE_SECRET;
 const stripe_public = config.STRIPE_PUBLIC;
 const API_PRICE = config.API_PRICE;
-
+const API_UNIT = config.API_UNIT;
+const API_FREE_LIMIT = config.API_FREE_LIMIT;
 const stripe = require('stripe')(stripe_secret);
 
 let invoiceMonth = moment(); //.subtract(1, 'month');
 
-console.log("Running invoice script on", moment().format("YYYY MM DD"));
-console.log("Invoice is for", invoiceMonth.format("MMMM YYYY"));
+console.log("[METADATA] Running invoice script on", moment().format("YYYY MM DD"));
+console.log("[METADATA] Invoice is for", invoiceMonth.format("MMMM YYYY"));
+
+let countProcessed = 0, countSkipped = 0, countFailed = 0, countCharged = 0;
 
 db.raw(
   `
@@ -30,10 +33,11 @@ db.raw(
   `)
 .asCallback((err, results) => {
   if (err) {
-    return console.err(err);
+    return console.error(err);
   }
   
   async.eachLimit(results.rows, 10, (e, cb) => {
+    
     db.raw(
     `
       SELECT
@@ -52,31 +56,60 @@ db.raw(
       GROUP BY 2, 3, 4, 5
     `)
     .asCallback((err, results) => {
-      console.log(err);
-      console.log(results.rows);
+      
+      console.log("[PROCESSING] Key:", e.api_key, "| Usage:", e.usage_count, "| Account:", e.account_id, "| Customer:", e.customer_id);
+      
+      countProcessed++;
+      
+      if (err) {
+        console.error(err);
+        return cb(err);
+      }
+
       if (results.rows.length === 1 && results.rows[0].usage_count === e.usage_count) {
-        let charge
+        
+        if (e.usage_count <= API_FREE_LIMIT) {
+          console.log("[SKIPPED] Key", e.api_key, "under limit.");
+          return cb();
+        }
+        
+        let chargeCount = e.usage_count - API_FREE_LIMIT;
+        
+        let charge = Math.round(chargeCount / API_UNIT * API_PRICE * 100);
+        
         stripe.charges.create({
-          amount: 2000,
+          amount: charge,
           currency: "usd",
           customer: e.customer_id,
-          description: `Charge for OpenDota API usage for ${invoiceMonth.format("YYYY-MM")}`
+          description: `OpenDota API usage for ${invoiceMonth.format("YYYY-MM")}. # Calls: ${chargeCount}.`,
+          metadata: {
+            api_key: e.api_key,
+            account_id: e.account_id,
+            usage: e.usage_count,
+            charge_count: chargeCount
+          }
         }, (err, charge) => {
           if (err) {
-            return console.log("[FAILED] Charge creation failed. api_key",
+            console.error("[FAILED] Charge creation failed. api_key",
               e.api_key,
               "account_id",
               e.account_id,
               "customer_id",
               e.customer_id
             );
+            
+            console.error(err);
+            return cb(err);
           }
           
-          console.log()
+          console.log("[CHARGED]", charge, "| ID:", charge.id, "Key:", e.api_key, "| Usage:", e.usage_count, "| Account:", e.account_id, "| Customer:", e.customer_id);
+          
+          countCharged++;
+          return cb();
         });
       } else {
         if (results.rows.length != 1) {
-          console.log("[FAILED] Got multiple records. api_key",
+          console.error("[FAILED] Got multiple records. api_key",
             e.api_key,
             "account_id",
             e.account_id,
@@ -84,7 +117,7 @@ db.raw(
             e.customer_id
           );
         } else {
-          console.log(
+          console.error(
             "[FAILED] Usage did not match count ad end of month. api_key",
             e.api_key,
             "account_id",
@@ -93,8 +126,18 @@ db.raw(
             e.customer_id
           );
         }
-        cb();
+        
+        countFailed++;
+        return cb();
       }
     })
+  },
+  (err) => {
+    if (err) {
+      process.exit(1);
+    }
+    
+    console.log("[METADATA] Processed:", countProcessed, "| Charged:", countCharged, "| Skipped:", countSkipped, "| Failed:", countFailed);
+    process.exit(0);
   });
 })
