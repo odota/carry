@@ -19,22 +19,32 @@ let countProcessed = 0, countSkipped = 0, countFailed = 0, countCharged = 0;
 
 db.raw(
   `
-  SELECT
-    MAX(usage_count) as usage_count,
-    account_id,
-    customer_id,
-    api_key
-  FROM api_key_usage
-  WHERE
-    timestamp <= '${invoiceMonth.endOf('month').format("YYYY-MM-DD")}'
-    AND timestamp >= '${invoiceMonth.startOf('month').format("YYYY-MM-DD")}'
-  GROUP BY 2, 3, 4
-  ORDER BY 1 DESC
+    SELECT
+      SUM(usage_count) as usage_count,
+      ARRAY_AGG(api_key) as api_jeys,
+      ARRAY_AGG(customer_id) as customer_ids,
+      account_id
+    FROM (  
+      SELECT
+        MAX(usage_count) as usage_count,
+        account_id,
+        customer_id,
+        api_key
+      FROM api_key_usage
+      WHERE
+        timestamp <= '${invoiceMonth.endOf('month').format("YYYY-MM-DD")}'
+        AND timestamp >= '${invoiceMonth.startOf('month').format("YYYY-MM-DD")}'
+      GROUP BY 2, 3, 4
+    ) as T1
+    GROUP BY 4
   `)
 .asCallback((err, results) => {
   if (err) {
     return console.error(err);
   }
+  
+  console.log(results.rows);
+  process.exit(1);
   
   async.eachLimit(results.rows, 10, (e, cb) => {
     
@@ -68,14 +78,21 @@ db.raw(
 
       if (results.rows.length === 1 && results.rows[0].usage_count === e.usage_count) {
         
+        e.usage_count = 25001;
         if (e.usage_count <= API_FREE_LIMIT) {
           console.log("[SKIPPED] Key", e.api_key, "under limit.");
+          countSkipped++;
           return cb();
         }
-        
+
         let chargeCount = e.usage_count - API_FREE_LIMIT;
-        
         let charge = Math.round(chargeCount / API_UNIT * API_PRICE * 100);
+
+        if (charge < 50) {
+          console.log("[SKIPPED] Key", e.api_key, "charge less than $0.50.");
+          countSkipped++;
+          return cb();
+        }
         
         stripe.charges.create({
           amount: charge,
