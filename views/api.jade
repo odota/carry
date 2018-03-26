@@ -26,6 +26,7 @@ block page_content
           h4 Details
           ol
             li Calls over 25000/month will require an API key.
+            li All limits are at the account level.
             li Keyless API calls are limited to 1 call per second. Calls with API keys are limited to 3 calls per second.
             li Getting an API key requires a linked-credit card. We'll automatically charge the card at the beginning of the month for any fees owed.
             li Payment is processed with Stripe. We never store your credit card information.
@@ -38,6 +39,7 @@ block page_content
                   button.btn.btn-danger Delete Key (cannot be undone)
                 button.btn.btn-default(onClick="openUpdate()") Update Payment Method
                 p We have a #{credit_brand} ending in #{credit_last4} on file. We'll charge this every month for any fees owned.
+                h4 Your Usage
               else
                 button.btn.btn-warning(onClick="showModal()") Get my API key
             else  

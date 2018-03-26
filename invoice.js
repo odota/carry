@@ -21,140 +21,131 @@ db.raw(
   `
     SELECT
       SUM(usage_count) as usage_count,
-      ARRAY_AGG(api_key) as api_jeys,
-      ARRAY_AGG(customer_id) as customer_ids,
+      ARRAY_AGG(api_key) as api_keys,
+      ARRAY_AGG(customer_id ORDER BY timestamp DESC) as customer_ids,
       account_id
     FROM (  
       SELECT
         MAX(usage_count) as usage_count,
         account_id,
         customer_id,
-        api_key
+        api_key,
+        timestamp
       FROM api_key_usage
       WHERE
         timestamp <= '${invoiceMonth.endOf('month').format("YYYY-MM-DD")}'
         AND timestamp >= '${invoiceMonth.startOf('month').format("YYYY-MM-DD")}'
-      GROUP BY 2, 3, 4
+      GROUP BY account_id, customer_id, api_key, timestamp
     ) as T1
-    GROUP BY 4
+    GROUP BY account_id
   `)
 .asCallback((err, results) => {
   if (err) {
     return console.error(err);
+    
   }
   
   console.log(results.rows);
-  process.exit(1);
-  
+
   async.eachLimit(results.rows, 10, (e, cb) => {
+      
+    console.log("[PROCESSING] Account:", e.account_id, "| Usage:", e.usage_count);
+    countProcessed++;
+      
+    e.usage_count = 30001;
+    if (e.usage_count <= API_FREE_LIMIT) {
+      console.log("[SKIPPED] Account", e.account_id, "under limit.");
+      countSkipped++;
+      return cb();
+    }
+
+    let chargeCount = e.usage_count - API_FREE_LIMIT;
+    let charge = Math.round(chargeCount / API_UNIT * API_PRICE * 100);
+
+    if (charge < 50) {
+      console.log("[SKIPPED] Account", e.account_id, "charge less than $0.50.");
+      countSkipped++;
+      return cb();
+    }
     
-    db.raw(
-    `
-      SELECT
-        MAX(timestamp),
-        usage_count,
-        account_id,
-        customer_id,
-        api_key
-      FROM api_key_usage
-      WHERE
-        timestamp <= '${invoiceMonth.endOf('month').format("YYYY-MM-DD")}'
-        AND timestamp >= '${invoiceMonth.startOf('month').format("YYYY-MM-DD")}'
-        AND account_id = ${e.account_id ? "'" + e.account_id + "'" : null}
-        AND customer_id = ${e.customer_id ? "'" + e.customer_id + "'" : null}
-        AND api_key = ${e.api_key ? "'" + e.api_key + "'" : null}
-      GROUP BY 2, 3, 4, 5
-    `)
-    .asCallback((err, results) => {
-      
-      console.log("[PROCESSING] Key:", e.api_key, "| Usage:", e.usage_count, "| Account:", e.account_id, "| Customer:", e.customer_id);
-      
-      countProcessed++;
-      
-      if (err) {
-        console.error(err);
-        return cb(err);
-      }
-
-      if (results.rows.length === 1 && results.rows[0].usage_count === e.usage_count) {
-        
-        e.usage_count = 25001;
-        if (e.usage_count <= API_FREE_LIMIT) {
-          console.log("[SKIPPED] Key", e.api_key, "under limit.");
-          countSkipped++;
-          return cb();
-        }
-
-        let chargeCount = e.usage_count - API_FREE_LIMIT;
-        let charge = Math.round(chargeCount / API_UNIT * API_PRICE * 100);
-
-        if (charge < 50) {
-          console.log("[SKIPPED] Key", e.api_key, "charge less than $0.50.");
-          countSkipped++;
-          return cb();
-        }
-        
-        stripe.charges.create({
-          amount: charge,
-          currency: "usd",
-          customer: e.customer_id,
-          description: `OpenDota API usage for ${invoiceMonth.format("YYYY-MM")}. # Calls: ${chargeCount}.`,
-          metadata: {
-            api_key: e.api_key,
-            account_id: e.account_id,
-            usage: e.usage_count,
-            charge_count: chargeCount
-          }
-        }, (err, charge) => {
+    let chargeMetadata = {
+        api_key: e.api_key,
+        account_id: e.account_id,
+        usage: e.usage_count,
+        charge_count: chargeCount
+      };
+    
+    if (e.customer_ids.length === 1) {
+      createCharge(charge, e.customer_ids[0],chargeMetadata, cb);
+    } else {
+      // Try to find the most recent customer ID to use.
+      db.from('api_keys')
+        .where({
+          account_id: e.account_id
+        }).asCallback((err, results) => {
           if (err) {
-            console.error("[FAILED] Charge creation failed. api_key",
-              e.api_key,
-              "account_id",
-              e.account_id,
-              "customer_id",
-              e.customer_id
-            );
-            
-            console.error(err);
             return cb(err);
           }
-          
-          console.log("[CHARGED]", charge, "| ID:", charge.id, "Key:", e.api_key, "| Usage:", e.usage_count, "| Account:", e.account_id, "| Customer:", e.customer_id);
-          
-          countCharged++;
-          return cb();
+
+          console.log(results);
+          if (results.length === 1) {
+            createCharge(charge, results[0].customer_id, chargeMetadata, cb);
+          } else {
+            // This case shouldn't happen since we don't delete the customer_id.
+            // Try charging the most recent customer_id available.
+            console.log('No charge_id found in DB, account', e.account_id);
+            async.someSeries(e.customer_ids, (e, cb2) => {
+              createCharge(charge, e, chargeMetadata, (err) => {
+                return err ? false : true;
+              })
+            }, cb);
+          }
         });
-      } else {
-        if (results.rows.length != 1) {
-          console.error("[FAILED] Got multiple records. api_key",
-            e.api_key,
-            "account_id",
-            e.account_id,
-            "customer_id",
-            e.customer_id
-          );
-        } else {
-          console.error(
-            "[FAILED] Usage did not match count ad end of month. api_key",
-            e.api_key,
-            "account_id",
-            e.account_id,
-            "customer_id",
-            e.customer_id
-          );
-        }
-        
-        countFailed++;
-        return cb();
-      }
-    })
+    }
   },
   (err) => {
     if (err) {
-      process.exit(1);
+      logandDie(err);
     }
     
     console.log("[METADATA] Processed:", countProcessed, "| Charged:", countCharged, "| Skipped:", countSkipped, "| Failed:", countFailed);
     process.exit(0);
   });
 })
+
+
+function createCharge(chargeAmount, customer_id, metadata, cb) {
+   stripe.charges.create({
+      amount: chargeAmount,
+      currency: "usd",
+      customer: customer_id,
+      description: `OpenDota API usage for ${invoiceMonth.format("YYYY-MM")}. # Calls: ${metadata.chargeCount}.`,
+      metadata: metadata
+    }, (err, charge) => {
+      if (err) {
+        console.error("[FAILED] Charge creation failed. Account",
+          metadata.account_id,
+          "api_keys",
+          metadata.api_keys.join(','),
+          "customer_ids",
+          metadata.customer_ids.join(',')
+        );
+        
+        console.error(err);
+        return cb(err);
+      }
+      
+      console.log("[CHARGED]",
+        metadata.account_id,
+        "charged", chargeAmount,
+        "| ID:", charge.id,
+        "| Usage:", metadata.usage_count, 
+        "| Customer:", customer_id);
+      return cb();
+    });
+}
+
+function logandDie(err) {
+  console.log('[ERROR]', err);
+  process.exit(1); 
+}
